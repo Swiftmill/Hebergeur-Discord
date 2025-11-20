@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot Hosting - Connexion</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Bot Hosting Panel</h1>
+    <div class="card">
+      <h2>Connexion</h2>
+      <form id="login-form">
+        <input type="email" id="login-email" placeholder="Email" required>
+        <input type="password" id="login-password" placeholder="Mot de passe" required>
+        <button type="submit">Se connecter</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Inscription</h2>
+      <form id="register-form">
+        <input type="email" id="register-email" placeholder="Email" required>
+        <input type="password" id="register-password" placeholder="Mot de passe" required>
+        <button type="submit">Créer un compte</button>
+      </form>
+    </div>
+  </div>
+  <script src="/app.js"></script>
+  <script>
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const formData = new URLSearchParams();
+      formData.append('username', email);
+      formData.append('password', password);
+      formData.append('grant_type', 'password');
+      const res = await apiPost('/api/auth/login', formData, true);
+      if (res.access_token) {
+        localStorage.setItem('token', res.access_token);
+        window.location.href = '/dashboard.html';
+      } else {
+        alert('Erreur de connexion');
+      }
+    });
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      const res = await apiPostJson('/api/auth/register', { email, password });
+      if (res.id) {
+        alert('Compte créé, vous pouvez vous connecter');
+      } else {
+        alert('Erreur: ' + (res.detail || '')); 
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Détails du bot</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <h1 id="bot-title">Bot</h1>
+    <div>
+      <button onclick="goDashboard()">Retour</button>
+      <button onclick="logout()">Déconnexion</button>
+    </div>
+  </header>
+  <main class="container">
+    <section class="card">
+      <h2>Informations</h2>
+      <p id="bot-info"></p>
+      <div class="actions">
+        <button onclick="startBot()">Start</button>
+        <button onclick="stopBot()">Stop</button>
+        <button onclick="restartBot()">Restart</button>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Logs</h2>
+      <pre id="logs" class="logs"></pre>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+  <script>
+    authRequired();
+    const params = new URLSearchParams(window.location.search);
+    const botId = params.get('id');
+    const botInfo = document.getElementById('bot-info');
+    const botTitle = document.getElementById('bot-title');
+    const logsEl = document.getElementById('logs');
+
+    async function fetchBot() {
+      const bot = await apiGet(`/api/bots/${botId}`);
+      botTitle.innerText = bot.name;
+      botInfo.innerText = `${bot.language} | Entrypoint: ${bot.entrypoint} | Status: ${bot.status}`;
+    }
+
+    async function fetchLogs() {
+      const res = await apiGet(`/api/bots/${botId}/logs?lines=200`);
+      logsEl.innerText = res.logs.join('');
+    }
+
+    async function startBot() {
+      await apiPost(`/api/bots/${botId}/start`);
+      fetchBot();
+    }
+    async function stopBot() {
+      await apiPost(`/api/bots/${botId}/stop`);
+      fetchBot();
+    }
+    async function restartBot() {
+      await apiPost(`/api/bots/${botId}/restart`);
+      fetchBot();
+    }
+    function goDashboard() {
+      window.location.href = '/dashboard.html';
+    }
+
+    fetchBot();
+    fetchLogs();
+    setInterval(fetchLogs, 5000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <h1>Mes bots</h1>
+    <div>
+      <button onclick="logout()">Déconnexion</button>
+    </div>
+  </header>
+  <main class="container">
+    <section class="card">
+      <h2>Créer un bot</h2>
+      <form id="create-bot-form" enctype="multipart/form-data">
+        <input type="text" name="name" placeholder="Nom du bot" required>
+        <select name="language">
+          <option value="python">Python</option>
+          <option value="node">Node.js</option>
+        </select>
+        <input type="text" name="entrypoint" placeholder="Entrypoint (bot.py / index.js)" value="bot.py" required>
+        <input type="text" name="token" placeholder="Discord Token" required>
+        <label>Uploader un zip (optionnel)</label>
+        <input type="file" name="file" accept=".zip">
+        <button type="submit">Créer</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Liste des bots</h2>
+      <div id="bots-list"></div>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+  <script>
+    authRequired();
+    const botsList = document.getElementById('bots-list');
+
+    async function loadBots() {
+      const bots = await apiGet('/api/bots');
+      botsList.innerHTML = '';
+      bots.forEach(bot => {
+        const div = document.createElement('div');
+        div.className = 'bot-item';
+        div.innerHTML = `
+          <div>
+            <h3>${bot.name} <span class="status ${bot.status}">${bot.status}</span></h3>
+            <p>${bot.language} - Entrypoint: ${bot.entrypoint}</p>
+          </div>
+          <div class="actions">
+            <button onclick="startBot(${bot.id})">Start</button>
+            <button onclick="stopBot(${bot.id})">Stop</button>
+            <button onclick="restartBot(${bot.id})">Restart</button>
+            <button onclick="viewBot(${bot.id})">Détails</button>
+          </div>
+        `;
+        botsList.appendChild(div);
+      });
+    }
+
+    async function startBot(id) {
+      await apiPost(`/api/bots/${id}/start`);
+      loadBots();
+    }
+    async function stopBot(id) {
+      await apiPost(`/api/bots/${id}/stop`);
+      loadBots();
+    }
+    async function restartBot(id) {
+      await apiPost(`/api/bots/${id}/restart`);
+      loadBots();
+    }
+    function viewBot(id) {
+      window.location.href = `/bot_detail.html?id=${id}`;
+    }
+
+    document.getElementById('create-bot-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+      await apiPost('/api/bots', data, false);
+      form.reset();
+      loadBots();
+    });
+
+    loadBots();
+  </script>
+</body>
+</html>

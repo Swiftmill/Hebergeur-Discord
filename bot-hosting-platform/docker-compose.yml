@@ -1,0 +1,22 @@
+version: '3.9'
+services:
+  backend:
+    build: .
+    container_name: bot-hosting-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+      - ./bots:/app/bots
+      - ./logs:/app/logs
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:////app/data/data.db
+      - SECRET_KEY=change-this-secret
+    command: ["/app/start.sh"]
+    restart: unless-stopped
+volumes:
+  data:
+  logs:
+  bots:
